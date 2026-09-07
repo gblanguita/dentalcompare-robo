@@ -292,7 +292,7 @@ def main():
         return
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, channel="msedge")
+        browser = p.chromium.launch(headless=True)
         try:
             for i, oferta in enumerate(ofertas, start=1):
                 print(f"\n[{i}/{len(ofertas)}]", end=" ")
