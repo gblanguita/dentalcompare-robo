@@ -1,4 +1,4 @@
-  name: Robo de precos diario
+name: Robô de Preços
 
 on:
   schedule:
@@ -6,35 +6,39 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Rodar em modo teste (nao grava no banco)?'
+        description: 'Rodar em modo teste (sem salvar no banco)'
+        required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
-  rodar-robo:
+  atualizar-precos:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
     steps:
-      - uses: actions/checkout@v4
+      - name: Baixar código
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - run: pip install -r requirements.txt
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
 
-      - run: python -m playwright install --with-deps chromium
+      - name: Instalar navegador (Playwright)
+        run: python -m playwright install --with-deps chromium
 
-      - name: Rodar robo (modo teste)
+      - name: Rodar robô (modo teste)
         if: ${{ inputs.dry_run == true }}
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python robo_precos.py --dry-run --limite 5
-
-      - name: Rodar robo (de verdade)
-        if: ${{ inputs.dry_run != true }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Rodar robô (modo real)
+        if: ${{ inputs.dry_run != true }}
         run: python robo_precos.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
